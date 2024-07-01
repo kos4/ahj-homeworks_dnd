@@ -8,9 +8,7 @@
   "scripts": {
     "start": "webpack-dev-server --config webpack.dev.js",
     "build": "webpack --config webpack.prod.js",
-    "lint": "eslint . --fix",
-    "test": "jest --testPathPattern=./src/",
-    "coverage": "jest --testPathPattern=./src/ --coverage"
+    "lint": "eslint . --fix"
   },
   "devDependencies": {
     "@babel/cli": "^7.24.7",
