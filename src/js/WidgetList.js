@@ -82,7 +82,7 @@ export default class WidgetList {
     const _list = document.createElement("div");
     _list.classList.add("tasks__list");
 
-    if (data) {
+    if (data.length > 0) {
       data.forEach((item) => {
         _list.insertAdjacentHTML("beforeend", this.markupElement(item));
       });
