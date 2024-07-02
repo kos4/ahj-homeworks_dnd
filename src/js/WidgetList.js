@@ -28,29 +28,42 @@ export default class WidgetList {
     let _targetItem, _elementTmp;
 
     const onMouseOver = (e) => {
-      _targetItem.style.top = e.clientY - tasksListPos.y - e.layerY + "px";
-      _targetItem.style.left = e.clientX - tasksListPos.x - e.layerX + "px";
+      let posTop = e.clientY - tasksListPos.top;
+      let posLeft = (_targetItem.offsetWidth - tasksListPos.width) / 2;
+
+      if (posTop < 0 ) {
+        posTop = 0;
+      } else if (e.clientY > tasksListPos.bottom - _targetItem.offsetHeight) {
+        posTop = tasksListPos.height - _targetItem.offsetHeight;
+      }
+
+      _targetItem.style.top = posTop + "px";
+      _targetItem.style.left = posLeft + "px";
     };
 
     const onMouseUp = (e) => {
       const mouseUpItem = e.target.closest(".tasks__item");
+console.log(_tasksList.contains(mouseUpItem))
+      if (_tasksList.contains(mouseUpItem)) {
+        _tasksList.insertBefore(_targetItem, mouseUpItem);
 
-      _tasksList.insertBefore(_targetItem, mouseUpItem);
+        const sort = Array.from(
+          _tasksList.querySelectorAll(".tasks__item"),
+        ).findIndex((item) => item === _targetItem);
+        const id = Number(_targetItem.dataset.id);
+console.log(sort, id)
+        this.setSort(sort, id);
+      }
+
       _tasksList.style.cursor = "default";
       _targetItem.classList.remove("tasks__dragged");
       _targetItem.style = "";
 
-      _tasksList.removeEventListener("mouseup", onMouseUp);
-      _tasksList.removeEventListener("mouseover", onMouseOver);
-
-      const sort = Array.from(
-        _tasksList.querySelectorAll(".tasks__item"),
-      ).findIndex((item) => item === _targetItem);
-      const id = Number(_targetItem.dataset.id);
-
-      this.setSort(sort, id);
       _elementTmp.remove();
       _targetItem = undefined;
+
+      document.documentElement.removeEventListener("mouseup", onMouseUp);
+      document.documentElement.removeEventListener("mouseover", onMouseOver);
     };
 
     _tasksList.addEventListener("mousedown", (e) => {
@@ -65,8 +78,8 @@ export default class WidgetList {
       _elementTmp.style.height = _targetItem.offsetHeight + "px";
       _targetItem.insertAdjacentElement("afterend", _elementTmp);
 
-      _tasksList.addEventListener("mouseup", onMouseUp);
-      _tasksList.addEventListener("mouseover", onMouseOver);
+      document.documentElement.addEventListener("mouseup", onMouseUp);
+      document.documentElement.addEventListener("mouseover", onMouseOver);
     });
   }
 
