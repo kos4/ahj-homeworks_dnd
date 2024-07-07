@@ -24,36 +24,20 @@ export default class WidgetList {
     });
 
     const _tasksList = this.container.querySelector(".tasks__list");
-    const tasksListPos = _tasksList.getBoundingClientRect();
     let _targetItem, _elementTmp;
 
     const onMouseOver = (e) => {
-      let posTop = e.clientY - tasksListPos.top;
-      let posLeft = (_targetItem.offsetWidth - tasksListPos.width) / 2;
-
-      if (posTop < 0 ) {
-        posTop = 0;
-      } else if (e.clientY > tasksListPos.bottom - _targetItem.offsetHeight) {
-        posTop = tasksListPos.height - _targetItem.offsetHeight;
-      }
-
-      _targetItem.style.top = posTop + "px";
-      _targetItem.style.left = posLeft + "px";
+      _targetItem.style.top = e.clientY - e.offsetY + "px";
+      _targetItem.style.left = e.clientX - e.offsetX + "px";
     };
 
     const onMouseUp = (e) => {
       const mouseUpItem = e.target.closest(".tasks__item");
-console.log(_tasksList.contains(mouseUpItem))
-      if (_tasksList.contains(mouseUpItem)) {
-        _tasksList.insertBefore(_targetItem, mouseUpItem);
+      const parent = mouseUpItem.closest(".tasks__list");
 
-        const sort = Array.from(
-          _tasksList.querySelectorAll(".tasks__item"),
-        ).findIndex((item) => item === _targetItem);
-        const id = Number(_targetItem.dataset.id);
-console.log(sort, id)
-        this.setSort(sort, id);
-      }
+      parent.insertBefore(_targetItem, mouseUpItem);
+
+      this.setData();
 
       _tasksList.style.cursor = "default";
       _targetItem.classList.remove("tasks__dragged");
@@ -69,25 +53,39 @@ console.log(sort, id)
     _tasksList.addEventListener("mousedown", (e) => {
       e.preventDefault();
 
-      _targetItem = e.target.closest(".tasks__item");
-      _targetItem.classList.add("tasks__dragged");
-      _tasksList.style.cursor = "grabbing";
+      if (!e.target.classList.contains("tasks__btn-remove")) {
+        _targetItem = e.target.closest(".tasks__item");
+        _targetItem.classList.add("tasks__dragged");
+        _tasksList.style.cursor = "grabbing";
+        _targetItem.style.width = _tasksList.offsetWidth + "px";
 
-      _elementTmp = document.createElement("div");
-      _elementTmp.classList.add("tasks__tmp");
-      _elementTmp.style.height = _targetItem.offsetHeight + "px";
-      _targetItem.insertAdjacentElement("afterend", _elementTmp);
+        _elementTmp = document.createElement("div");
+        _elementTmp.classList.add("tasks__tmp");
+        _elementTmp.style.height = _targetItem.offsetHeight + "px";
+        _targetItem.insertAdjacentElement("afterend", _elementTmp);
 
-      document.documentElement.addEventListener("mouseup", onMouseUp);
-      document.documentElement.addEventListener("mouseover", onMouseOver);
+        document.documentElement.addEventListener("mouseup", onMouseUp);
+        document.documentElement.addEventListener("mouseover", onMouseOver);
+      }
     });
   }
 
-  setSort(sort, id) {
-    const data = getData();
-    const index = data[this.parentId].findIndex((item) => item.id === id);
+  setData() {
+    const data = {};
+    const tasks = document.querySelectorAll(".tasks__block");
 
-    data[this.parentId][index].sort = sort;
+    tasks.forEach((tasksList) => {
+      data[tasksList.dataset.id] = [];
+      const tasksItems = tasksList.querySelectorAll(".tasks__item");
+      tasksItems.forEach((item, index) => {
+        data[tasksList.dataset.id].push({
+          id: item.dataset.id,
+          text: item.querySelector(".tasks__item-text").innerText,
+          sort: index + 1,
+        });
+      });
+    });
+
     setData(data);
   }
 
@@ -121,13 +119,8 @@ console.log(sort, id)
 
   removeItem(_item) {
     if (confirm("Удалить задачу?")) {
-      const parentId = _item.closest(".tasks__block").dataset.id;
-      const id = Number(_item.dataset.id);
-      const data = getData();
-
-      data[parentId] = data[parentId].filter((item) => item.id !== id);
-      setData(data);
       _item.remove();
+      this.setData();
     }
   }
 }
