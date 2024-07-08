@@ -32,17 +32,24 @@ export default class WidgetList {
     };
 
     const onMouseUp = (e) => {
-      const mouseUpItem = e.target.closest(".tasks__item");
-      const parent = mouseUpItem.closest(".tasks__list");
+      let mouseUpItem = e.target.closest(".tasks__item");
 
-      parent.insertBefore(_targetItem, mouseUpItem);
+      if (mouseUpItem) {
+        const parent = mouseUpItem.closest(".tasks__list");
+        parent.insertBefore(_targetItem, mouseUpItem);
+        this.setData();
+      } else {
+        mouseUpItem = e.target.closest(".tasks__list");
 
-      this.setData();
+        if (mouseUpItem) {
+          mouseUpItem.appendChild(_targetItem);
+          this.setData();
+        }
+      }
 
       _tasksList.style.cursor = "default";
       _targetItem.classList.remove("tasks__dragged");
       _targetItem.style = "";
-
       _elementTmp.remove();
       _targetItem = undefined;
 
